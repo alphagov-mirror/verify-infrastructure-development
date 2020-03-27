@@ -174,15 +174,6 @@ resource "aws_iam_policy" "prometheus" {
       {
         "Effect": "Allow",
         "Action": [
-          "cloudwatch:Describe*",
-          "cloudwatch:Get*",
-          "cloudwatch:List*"
-        ],
-        "Resource": "*"
-      },
-      {
-        "Effect": "Allow",
-        "Action": [
           "ecs:RegisterContainerInstance",
           "ecs:DeregisterContainerInstance"
         ],
@@ -237,7 +228,6 @@ data "template_file" "prometheus_cloud_init" {
   vars = {
     prometheus_config          = data.template_file.prometheus_config.rendered
     deployment                 = var.deployment
-    domain                     = local.root_domain
     cluster                    = aws_ecs_cluster.prometheus.name
     ecs_agent_image_identifier = local.ecs_agent_image_identifier
     tools_account_id           = var.tools_account_id
@@ -320,7 +310,7 @@ resource "aws_lb_target_group_attachment" "prometheus" {
 
 resource "aws_lb_listener_rule" "prometheus_https" {
   count        = var.number_of_prometheus_apps
-  listener_arn = aws_lb_listener.mgmt_https.arn
+  listener_arn = aws_lb_listener.mgmt_http.arn
   priority     = 100 + count.index
 
   action {
@@ -346,13 +336,11 @@ module "prometheus_ecs_roles" {
 
 data "template_file" "prometheus_task_def" {
   count    = var.number_of_prometheus_apps
-  template = file("${path.module}/files/tasks/prometheus.json")
+  template = file("${path.module}/files/tasks/ .json")
 
   vars = {
     image_identifier = "${local.tools_account_ecr_url_prefix}-verify-prometheus@${var.prometheus_image_digest}"
     config_base64    = base64encode(data.template_file.prometheus_config.rendered)
-    alerts_base64    = base64encode(file("${path.module}/files/prometheus/alerts.yml"))
-    external_url     = "https://prom-${count.index + 1}.${local.mgmt_domain}"
   }
 }
 

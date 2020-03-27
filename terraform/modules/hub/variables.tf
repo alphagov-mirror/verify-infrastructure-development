@@ -1,5 +1,5 @@
 variable "deployment" {
-  description = "Name of the deployment; {joint,staging,prod,integration}"
+  description = "Name of the deployment; {development,staging,prod,integration}"
 }
 
 variable "tools_account_id" {
@@ -19,14 +19,13 @@ variable "mgmt_accessible_from_cidrs" {
 }
 
 locals {
-  root_domain                  = replace(var.signin_domain, "/www[.]/", "")
   number_of_availability_zones = 1
-}
-
-variable "wildcard_cert_arn" {
-  default = "ACM cert arn for wildcard of signin_domain"
 }
 
 variable "instance_type" {
   default = "t2.micro"
 }
+
+variable "ecs_agent_image_digest" {}
+variable "nginx_image_digest" {}
+variable "prometheus_image_digest" {}
