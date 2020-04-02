@@ -25,3 +25,5 @@ if [ -z "$(lsblk | grep "$vol" | awk '{print $7}')" ] ; then
     echo "UUID=$UUID /srv/prometheus ext4 defaults,nofail 0 2" >> /etc/fstab
   fi
 fi
+
+echo "This string will be used to cause the instance to cycle."

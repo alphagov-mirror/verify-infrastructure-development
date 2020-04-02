@@ -5,6 +5,13 @@ provider "aws" {
   region = "eu-west-2"
 }
 
+data "aws_availability_zones" "opted-in" {
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
 resource "aws_iam_role" "volume-mount-test" {
   name               = "volume-mount-test"
   assume_role_policy = <<-EOF
@@ -58,29 +65,32 @@ module "vpc" {
 }
 
 resource "aws_instance" "volume-mount-test" {
+  count = 3
   ami                    = data.aws_ami.ubuntu_bionic.id
   instance_type          = "t3.micro"
-  subnet_id              = module.vpc.private_subnets[0]
+  subnet_id              = module.vpc.private_subnets[count.index]
   iam_instance_profile   = aws_iam_instance_profile.volume-mount-test.name
   user_data              = data.template_file.cloud-init.rendered
   vpc_security_group_ids = ["sg-00ae163a16703e072"]
   root_block_device {
     volume_size = 20
   }
+
+  tags = {
+    Name = "volume-mount-test-${count.index}"
+  }
 }
 
 resource "aws_ebs_volume" "volume-mount-test" {
+  count = 3
   size              = 100
   encrypted         = true
-  availability_zone = "eu-west-2a"
+  availability_zone = data.aws_availability_zones.opted-in.names[count.index]
 }
 
 resource "aws_volume_attachment" "volume-mount-test" {
+  count = 3
   device_name = "/dev/xvdp"
-  volume_id   = aws_ebs_volume.volume-mount-test.id
-  instance_id = aws_instance.volume-mount-test.id
+  volume_id   = aws_ebs_volume.volume-mount-test.*.id[count.index]
+  instance_id = aws_instance.volume-mount-test.*.id[count.index]
 }
-
-
-
-
