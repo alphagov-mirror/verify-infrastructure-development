@@ -1,8 +1,13 @@
 terraform {
   required_version = "= 0.12.19"
 }
+
 provider "aws" {
   region = "eu-west-2"
+}
+
+variable "volume_size" {
+  default = 100
 }
 
 data "aws_availability_zones" "opted-in" {
@@ -53,6 +58,10 @@ data "aws_ami" "ubuntu_bionic" {
 
 data "template_file" "cloud-init" {
   template = file("files/cloud-init.sh")
+
+  vars = {
+    volume_size = var.volume_size
+  }
 }
 
 module "vpc" {
@@ -83,7 +92,7 @@ resource "aws_instance" "volume-mount-test" {
 
 resource "aws_ebs_volume" "volume-mount-test" {
   count = 3
-  size              = 100
+  size              = var.volume_size
   encrypted         = true
   availability_zone = data.aws_availability_zones.opted-in.names[count.index]
 }

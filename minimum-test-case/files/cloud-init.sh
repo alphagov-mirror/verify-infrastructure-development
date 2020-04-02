@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -ueo pipefail
 echo 'Configuring prometheus EBS'
-vol="nvme1n1"
+# adapted from
+# https://medium.com/@moonape1226/mount-aws-ebs-on-ec2-automatically-with-cloud-init-e5e837e5438a
+# [Last accessed on 2020-04-02]
+vol=$(lsblk | grep -e disk | awk '{sub("G","",$4)} {if ($4+0 == ${volume_size}) print $1}')
 mkdir -p /srv/prometheus
 while true; do
   lsblk | grep -q "$vol" && break
