@@ -4,13 +4,13 @@ echo 'Configuring prometheus EBS'
 # adapted from
 # https://medium.com/@moonape1226/mount-aws-ebs-on-ec2-automatically-with-cloud-init-e5e837e5438a
 # [Last accessed on 2020-04-02]
-vol=$(lsblk | grep -e disk | awk '{sub("G","",$4)} {if ($4+0 == ${volume_size}) print $1}')
-mkdir -p /srv/prometheus
-while true; do
-  lsblk | grep -q "$vol" && break
-  echo "still waiting for volume /dev/$vol ; sleeping 5"
+vol=""
+while [ -z "$vol" ] ; do
+  vol=$(lsblk | grep -e disk | awk '{sub("G","",$4)} {if ($4+0 == ${volume_size}) print $1}')
+  echo "waiting for ebs data volume"
   sleep 5
 done
+mkdir -p /srv/prometheus
 echo "found volume /dev/$vol"
 if [ -z "$(lsblk | grep "$vol" | awk '{print $7}')" ] ; then
   if file -s "/dev/$vol" | grep -q ": data" ; then
@@ -29,4 +29,4 @@ if [ -z "$(lsblk | grep "$vol" | awk '{print $7}')" ] ; then
   fi
 fi
 
-echo "This string will be used to cause the instance to cycle."
+echo "This 'ere string will be used to cause the instance to cycle."

@@ -80,7 +80,7 @@ resource "aws_instance" "volume-mount-test" {
   subnet_id              = module.vpc.private_subnets[count.index]
   iam_instance_profile   = aws_iam_instance_profile.volume-mount-test.name
   user_data              = data.template_file.cloud-init.rendered
-  vpc_security_group_ids = ["sg-00ae163a16703e072"]
+  vpc_security_group_ids = []
   root_block_device {
     volume_size = 20
   }
