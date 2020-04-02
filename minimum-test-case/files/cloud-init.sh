@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -ueo pipefail
 echo 'Configuring prometheus EBS'
-# adapted from
-# https://medium.com/@moonape1226/mount-aws-ebs-on-ec2-automatically-with-cloud-init-e5e837e5438a
-# [Last accessed on 2020-04-02]
 vol=""
 while [ -z "$vol" ] ; do
+  # adapted from
+  # https://medium.com/@moonape1226/mount-aws-ebs-on-ec2-automatically-with-cloud-init-e5e837e5438a
+  # [Last accessed on 2020-04-02]
   vol=$(lsblk | grep -e disk | awk '{sub("G","",$4)} {if ($4+0 == ${volume_size}) print $1}')
   echo "waiting for ebs data volume"
   sleep 5
@@ -13,16 +13,16 @@ done
 mkdir -p /srv/prometheus
 echo "found volume /dev/$vol"
 if [ -z "$(lsblk | grep "$vol" | awk '{print $7}')" ] ; then
-  if file -s "/dev/$vol" | grep -q ": data" ; then
+  if [ -z "$(blkid /dev/$vol | grep ext4)" ] ; then
     echo "volume /dev/$vol is not formatted ; formatting"
-    mkfs -F -t ext4   "/dev/$vol"
+    mkfs -F -t ext4 "/dev/$vol"
   fi
+
   echo "volume /dev/$vol is formatted"
-  if [ -z "$(lsblk | grep "$vol" | awk '{print $7}')" ] ; then
-    echo "volume /dev/$vol is not mounted ; mounting"
-    mount "/dev/$vol" /srv/prometheus
-  fi
+  echo "mounting volume /dev/$vol"
+  mount "/dev/$vol" /srv/prometheus
   echo "volume /dev/$vol is mounted ; writing fstab entry"
+
   if grep -qv "/dev/$vol" /etc/fstab ; then
     UUID=$(blkid /dev/$vol -s UUID -o value)
     echo "UUID=$UUID /srv/prometheus ext4 defaults,nofail 0 2" >> /etc/fstab
