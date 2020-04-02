@@ -73,6 +73,38 @@ module "vpc" {
   account_name = "volume-mount-test"
 }
 
+resource "aws_security_group" "volume-mount-test" {
+  name = "volume-mount-test"
+  vpc_id = module.vpc.vpc_id
+}
+
+resource "aws_security_group_rule" "volume-mount-test-ingress" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "all"
+  security_group_id = aws_security_group.volume-mount-test.id
+  source_security_group_id = aws_security_group.volume-mount-test.id
+}
+
+resource "aws_security_group_rule" "volume-mount-test-ingress-all" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "all"
+  security_group_id = aws_security_group.volume-mount-test.id
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "volume-mount-test-egress" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "all"
+  security_group_id = aws_security_group.volume-mount-test.id
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
 resource "aws_instance" "volume-mount-test" {
   count = 3
   ami                    = data.aws_ami.ubuntu_bionic.id
@@ -80,7 +112,7 @@ resource "aws_instance" "volume-mount-test" {
   subnet_id              = module.vpc.private_subnets[count.index]
   iam_instance_profile   = aws_iam_instance_profile.volume-mount-test.name
   user_data              = data.template_file.cloud-init.rendered
-  vpc_security_group_ids = []
+  vpc_security_group_ids = [aws_security_group.volume-mount-test.id]
   root_block_device {
     volume_size = 20
   }

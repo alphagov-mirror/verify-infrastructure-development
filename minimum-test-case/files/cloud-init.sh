@@ -29,4 +29,4 @@ if [ -z "$(lsblk | grep "$vol" | awk '{print $7}')" ] ; then
   fi
 fi
 
-echo "This 'ere string will be used to cause the instance to cycle."
+echo "This string will be used to cause the instance to cycle."
